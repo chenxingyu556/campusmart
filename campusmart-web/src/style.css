@@ -1,0 +1,98 @@
+/* ===== 京东风格主题 ===== */
+:root {
+  --el-color-primary: #e1251b;
+  --el-color-primary-light-3: #e85a52;
+  --el-color-primary-light-5: #f08a84;
+  --el-color-primary-light-7: #f5b3af;
+  --el-color-primary-light-8: #f9cfcc;
+  --el-color-primary-light-9: #fdeceb;
+  --el-color-primary-dark-2: #c41d14;
+
+  --el-color-danger: #e1251b;
+  --el-color-danger-light-3: #e85a52;
+  --el-color-danger-light-5: #f08a84;
+  --el-color-danger-light-7: #f5b3af;
+  --el-color-danger-light-8: #f9cfcc;
+  --el-color-danger-light-9: #fdeceb;
+  --el-color-danger-dark-2: #c41d14;
+
+  --jd-red: #e1251b;
+  --jd-red-dark: #c81623;
+  --jd-orange: #ff6700;
+  --jd-text: #333;
+  --jd-gray: #999;
+  --jd-light-gray: #e3e4e5;
+  --jd-border: #eee;
+  --jd-bg: #f4f4f4;
+  --jd-wrap: 1190px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: var(--jd-text);
+  background: var(--jd-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: #666;
+  text-decoration: none;
+}
+a:hover {
+  color: var(--jd-red);
+}
+
+/* ===== Element Plus 方正化 ===== */
+.el-button {
+  border-radius: 2px;
+  font-weight: 400;
+}
+.el-input__wrapper {
+  border-radius: 2px;
+}
+.el-card {
+  border-radius: 4px;
+}
+.el-tag {
+  border-radius: 2px;
+}
+.el-message-box {
+  border-radius: 4px;
+}
+
+/* ===== 通用容器 ===== */
+.jd-wrap {
+  width: var(--jd-wrap);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+/* 价格样式统一 */
+.jd-price {
+  color: var(--jd-red);
+  font-weight: 600;
+}
+.jd-price::before {
+  content: "¥";
+  font-size: 0.8em;
+  margin-right: 1px;
+}
+
+/* 商品卡片 */
+.jd-card {
+  background: #fff;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.jd-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}

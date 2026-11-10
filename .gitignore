@@ -1,0 +1,37 @@
+# ---------- 后端 ----------
+CampusMart/target/
+CampusMart/HELP.md
+CampusMart/.mvn/wrapper/maven-wrapper.jar
+
+# ---------- Maven 仓库缓存（绝不能进版本控制）----------
+maven-repo/
+CampusMart/D:/
+CampusMart/.mvn/
+
+# ---------- 前端 ----------
+campusmart-web/node_modules/
+campusmart-web/dist/
+campusmart-web/.vite/
+
+# ---------- IDE ----------
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# ---------- 系统 ----------
+.DS_Store
+Thumbs.db
+
+# ---------- 日志 ----------
+*.log
+logs/
+
+# ---------- 环境变量 ----------
+.env
+.env.local
+
+# ---------- 构建产物 ----------
+build/
+out/

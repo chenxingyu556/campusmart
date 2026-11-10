@@ -1,0 +1,105 @@
+name: campusmart
+
+services:
+  # ---------- MySQL ----------
+  mysql:
+    image: mysql:8.0
+    container_name: campusmart-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: campusmart
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+    ports:
+      - "3307:3306"          # 宿主 3307，避开本地已有的 3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 只在数据卷为空（首次启动）时执行
+      - ./CampusMart/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p123456 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # ---------- Redis ----------
+  redis:
+    image: redis:7-alpine
+    container_name: campusmart-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6380:6379"          # 宿主 6380，避开本地已有的 6379
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ---------- RabbitMQ ----------
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: campusmart-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5673:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: campusmart
+      RABBITMQ_DEFAULT_PASS: "123456"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- 后端 ----------
+  backend:
+    build:
+      context: ./CampusMart
+      dockerfile: Dockerfile
+    container_name: campusmart-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:                          # ← 新增
+        condition: service_healthy       # ← 新增
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "123456"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 1
+      RABBITMQ_HOST: rabbitmq            # ← 新增
+      RABBITMQ_PORT: 5672                # ← 新增
+      TZ: Asia/Shanghai
+    ports:
+      - "8082:8080"
+
+  # ---------- 前端 ----------
+  frontend:
+    build:
+      context: ./campusmart-web
+      dockerfile: Dockerfile
+    container_name: campusmart-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+
+volumes:
+  mysql-data:
+  redis-data:

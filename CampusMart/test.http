@@ -1,0 +1,86 @@
+### 1. 正常注册
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "phone": "13800138005",
+  "password": "123456",
+  "nickname": "小明"
+}
+
+### 2. 重复注册（用上面同一个手机号）
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "phone": "13800138005",
+  "password": "123456"
+}
+
+### 3. 手机号格式错误
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "phone": "138",
+  "password": "123456"
+}
+
+### 4. 密码太短
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "phone": "13800138006",
+  "password": "123"
+}
+
+### 5. 昵称传空串（验证默认昵称）
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "phone": "13800138007",
+  "password": "123456",
+  "nickname": ""
+}
+
+
+### 0. 先登录，把 token 存进变量
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "phone": "13800138005",
+  "password": "123456"
+}
+
+> {% client.global.set("token", response.body.data.token) %}
+
+### 1. 不带 token 访问受保护接口
+GET http://localhost:8080/api/user/info
+
+### 2. 带错误 token
+GET http://localhost:8080/api/user/info
+Authorization: Bearer abc123def456
+
+### 3. 带正确 token
+GET http://localhost:8080/api/user/info
+Authorization: Bearer {{token}}
+
+### 新增商品
+POST http://localhost:8080/api/product
+Authorization: Bearer {eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3OTI5MDI3MjEsImV4cCI6MTc5MzUwNzUyMX0.8UZUZPNOfUXya6h31U6Ax_x6wWQJe_6BNHEMuIKr95mc4qCs4zUIjmeX28fx4WXX}
+Content-Type: application/json
+
+{
+  "categoryId": 8,
+  "name": "透明硅胶手机壳",
+  "subTitle": "超薄透明，不发黄",
+  "detail": "<p>TPU 软胶</p>",
+  "skus": [
+    { "skuName": "透明-iPhone 15",     "price": 15.90, "stock": 80 },
+    { "skuName": "透明-iPhone 15 Pro", "price": 18.90, "stock": 60 }
+  ]
+}
+
