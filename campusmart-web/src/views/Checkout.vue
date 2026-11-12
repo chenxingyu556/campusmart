@@ -3,32 +3,33 @@
     <div class="container">
       <h2 class="page-title">确认订单</h2>
 
+      <!-- ---------- 收货信息 ---------- -->
       <div class="block">
-        <div class="block-title">收货信息</div>
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          label-width="80px"
-          class="addr-form"
-        >
-          <el-form-item label="收货人" prop="receiverName">
-            <el-input v-model="form.receiverName" placeholder="请输入收货人姓名" />
-          </el-form-item>
-          <el-form-item label="手机号" prop="receiverPhone">
-            <el-input v-model="form.receiverPhone" placeholder="请输入手机号" />
-          </el-form-item>
-          <el-form-item label="收货地址" prop="receiverAddress">
-            <el-input
-              v-model="form.receiverAddress"
-              type="textarea"
-              :rows="2"
-              placeholder="请输入详细地址"
-            />
-          </el-form-item>
-        </el-form>
+        <div class="block-title">
+          <span>收货信息</span>
+          <el-button v-if="selectedAddress" link type="primary" @click="openPicker">
+            更换地址
+          </el-button>
+        </div>
+
+        <div v-if="selectedAddress" class="addr-selected">
+          <div class="addr-line1">
+            <span class="name">{{ selectedAddress.receiverName }}</span>
+            <span class="phone">{{ selectedAddress.receiverPhone }}</span>
+            <el-tag v-if="selectedAddress.isDefault" size="small" type="danger" effect="plain">
+              默认
+            </el-tag>
+          </div>
+          <div class="addr-line2">{{ fullAddress }}</div>
+        </div>
+
+        <div v-else class="addr-empty" @click="openPicker">
+          <span class="plus">+</span>
+          <span>还没有收货地址，点击添加</span>
+        </div>
       </div>
 
+      <!-- ---------- 商品清单 ---------- -->
       <div class="block">
         <div class="block-title">商品清单</div>
         <div v-if="loading" class="hint">加载中…</div>
@@ -55,51 +56,66 @@
           <span class="label">应付金额</span>
           <span class="amount">¥{{ totalAmount }}</span>
         </div>
-        <el-button
-          type="primary"
-          size="large"
-          :loading="submitting"
-          @click="submit"
-        >
+        <el-button type="primary" size="large" :loading="submitting" @click="submit">
           提交订单
         </el-button>
       </div>
     </div>
+
+    <AddressPicker
+      ref="pickerRef"
+      v-model:visible="pickerVisible"
+      :selected-id="selectedAddress ? selectedAddress.id : null"
+      @select="onSelectAddress"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCartList } from '@/api/cart'
 import { getProductDetail } from '@/api/product'
 import { submitOrder, submitFromCart } from '@/api/order'
+import { getAddressList } from '@/api/address'
+import AddressPicker from '@/components/AddressPicker.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const formRef = ref()
 const loading = ref(true)
 const submitting = ref(false)
 const previewItems = ref([])
 const totalAmount = ref('0.00')
 
+const pickerRef = ref()
+const pickerVisible = ref(false)
+const selectedAddress = ref(null)
+
 const isBuyNow = computed(() => !!route.query.skuId)
 
-const form = reactive({
-  receiverName: '',
-  receiverPhone: '',
-  receiverAddress: ''
+const fullAddress = computed(() => {
+  const a = selectedAddress.value
+  if (!a) return ''
+  return `${a.province}${a.city}${a.district} ${a.detail}`
 })
 
-const rules = {
-  receiverName: [{ required: true, message: '请输入收货人', trigger: 'blur' }],
-  receiverPhone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
-  ],
-  receiverAddress: [{ required: true, message: '请输入收货地址', trigger: 'blur' }]
+const openPicker = () => {
+  pickerVisible.value = true
+  pickerRef.value?.open()
+}
+
+const onSelectAddress = (a) => {
+  selectedAddress.value = a
+}
+
+const loadAddress = async () => {
+  const list = await getAddressList()
+  if (list && list.length > 0) {
+    // 优先选默认地址，没有默认就选第一条
+    selectedAddress.value = list.find((a) => a.isDefault) || list[0]
+  }
 }
 
 const loadPreview = async () => {
@@ -147,23 +163,23 @@ const loadPreview = async () => {
 }
 
 const submit = async () => {
-  await formRef.value.validate()
+  if (!selectedAddress.value) {
+    ElMessage.warning('请先选择收货地址')
+    openPicker()
+    return
+  }
 
   submitting.value = true
   try {
-    const addr = {
-      receiverName: form.receiverName,
-      receiverPhone: form.receiverPhone,
-      receiverAddress: form.receiverAddress
-    }
+    const payload = { addressId: selectedAddress.value.id }
 
     const res = isBuyNow.value
       ? await submitOrder({
           skuId: Number(route.query.skuId),
           quantity: Number(route.query.quantity),
-          ...addr
+          ...payload
         })
-      : await submitFromCart(addr)
+      : await submitFromCart(payload)
 
     ElMessage.success('下单成功，请在 30 分钟内完成支付')
     router.replace(`/orders/${res.orderId}`)
@@ -172,7 +188,9 @@ const submit = async () => {
   }
 }
 
-onMounted(loadPreview)
+onMounted(async () => {
+  await Promise.all([loadAddress(), loadPreview()])
+})
 </script>
 
 <style scoped>
@@ -201,9 +219,57 @@ onMounted(loadPreview)
   font-weight: 500;
   color: #303133;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-.addr-form {
-  max-width: 520px;
+.addr-selected {
+  padding: 14px 16px;
+  border: 1px solid #f5b7b3;
+  background: #fffafa;
+  border-radius: 8px;
+}
+.addr-line1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #303133;
+}
+.phone {
+  font-size: 13px;
+  color: #606266;
+}
+.addr-line2 {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.addr-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 72px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 8px;
+  color: #909399;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.addr-empty:hover {
+  border-color: #e1251b;
+  color: #e1251b;
+}
+.plus {
+  font-size: 18px;
+  line-height: 1;
 }
 .hint {
   padding: 30px 0;

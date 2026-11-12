@@ -136,6 +136,23 @@ CREATE TABLE `t_stock_log` (
   KEY `idx_sku` (`sku_id`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='库存变动流水';
 
+DROP TABLE IF EXISTS `t_address`;
+CREATE TABLE `t_address` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `receiver_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `receiver_phone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `province` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `city` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `district` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `detail` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_default` tinyint NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`,`is_default`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收货地址';
+
 -- ---------- t_user 初始数据（3 行）----------
 TRUNCATE TABLE `t_user`;
 INSERT INTO `t_user` (`id`, `phone`, `password`, `nickname`, `avatar`, `status`, `created_at`, `updated_at`) VALUES (1, '13800000000', 'test', '测试用户', NULL, 1, '2026-10-20 19:25:22', '2026-10-20 19:25:22');
@@ -216,11 +233,11 @@ INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `sta
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (6, 3, '整箱 12 瓶', 39.90, 20, NULL, 1, '2026-10-23 13:49:25', '2026-10-23 13:49:25');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (7, 4, '横线款', 12.80, 55, NULL, 1, '2026-10-23 13:49:25', '2026-11-04 20:05:22');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (8, 4, '方格款', 12.80, 200, NULL, 1, '2026-10-23 13:49:25', '2026-11-09 09:35:08');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (9, 5, '黑色-iPhone 15', 19.90, 95, NULL, 1, '2026-10-23 13:49:25', '2026-11-04 20:08:49');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (9, 5, '黑色-iPhone 15', 19.90, 94, NULL, 1, '2026-10-23 13:49:25', '2026-11-09 09:41:40');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (10, 5, '黑色-iPhone 15 Pro', 22.90, 50, NULL, 1, '2026-10-23 13:49:25', '2026-10-23 13:49:25');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (11, 5, '白色-iPhone 15', 19.90, 200, NULL, 1, '2026-10-23 13:49:25', '2026-11-09 09:35:08');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (12, 5, '白色-iPhone 15 Pro', 22.90, 30, NULL, 1, '2026-10-23 13:49:25', '2026-10-23 13:49:25');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (13, 6, '单罐装', 3.50, 500, 'https://picsum.photos/seed/sku6/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (13, 6, '单罐装', 3.50, 500, 'https://picsum.photos/seed/sku6/600/600', 1, '2026-11-09 09:35:00', '2026-11-10 16:16:12');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (14, 6, '6 罐装', 19.90, 200, 'https://picsum.photos/seed/sku6/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (15, 7, '单瓶', 2.00, 800, 'https://picsum.photos/seed/sku7/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (16, 7, '整箱 24 瓶', 42.00, 120, 'https://picsum.photos/seed/sku7/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
@@ -249,13 +266,13 @@ INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `sta
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (39, 21, '1m', 15.90, 400, 'https://picsum.photos/seed/sku21/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (40, 21, '2m', 19.90, 250, 'https://picsum.photos/seed/sku21/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (41, 22, '1.2m', 24.90, 200, 'https://picsum.photos/seed/sku22/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (42, 23, '3.5mm 黑色', 29.90, 200, 'https://picsum.photos/seed/sku23/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (42, 23, '3.5mm 黑色', 29.90, 199, 'https://picsum.photos/seed/sku23/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:41:40');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (43, 23, 'Type-C 黑色', 32.90, 150, 'https://picsum.photos/seed/sku23/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (44, 24, '白色', 89.00, 120, 'https://picsum.photos/seed/sku24/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (45, 24, '黑色', 89.00, 110, 'https://picsum.photos/seed/sku24/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (46, 25, '白色', 79.00, 150, 'https://picsum.photos/seed/sku25/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (47, 25, '黑色', 79.00, 140, 'https://picsum.photos/seed/sku25/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (48, 26, '深空灰', 159.00, 80, 'https://picsum.photos/seed/sku26/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (48, 26, '深空灰', 159.00, 68, 'https://picsum.photos/seed/sku26/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:41:40');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (49, 27, '6 包装', 26.90, 300, 'https://picsum.photos/seed/sku27/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (50, 28, '80 抽', 12.90, 260, 'https://picsum.photos/seed/sku28/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (51, 29, '套装', 19.90, 200, 'https://picsum.photos/seed/sku29/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
@@ -265,8 +282,8 @@ INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `sta
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (55, 32, '平装', 49.00, 90, 'https://picsum.photos/seed/sku32/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (56, 33, '全 3 册', 88.00, 100, 'https://picsum.photos/seed/sku33/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (57, 34, '平装', 28.00, 120, 'https://picsum.photos/seed/sku34/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (58, 35, '标准款', 19.90, 200, 'https://picsum.photos/seed/sku35/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
-INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (59, 36, '750ml 蓝色', 26.90, 150, 'https://picsum.photos/seed/sku36/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (58, 35, '标准款', 19.90, 200, 'https://picsum.photos/seed/sku35/600/600', 1, '2026-11-09 09:35:00', '2026-11-10 16:46:59');
+INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (59, 36, '750ml 蓝色', 26.90, 139, 'https://picsum.photos/seed/sku36/600/600', 1, '2026-11-09 09:35:00', '2026-11-12 16:36:29');
 INSERT INTO `t_sku` (`id`, `spu_id`, `sku_name`, `price`, `stock`, `image`, `status`, `created_at`, `updated_at`) VALUES (60, 36, '750ml 灰色', 26.90, 140, 'https://picsum.photos/seed/sku36/600/600', 1, '2026-11-09 09:35:00', '2026-11-09 09:35:00');
 
 SET FOREIGN_KEY_CHECKS = 1;

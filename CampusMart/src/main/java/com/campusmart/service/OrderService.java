@@ -35,10 +35,12 @@ public class OrderService {
     private final CartMapper cartMapper;
     private final StockService stockService;
     private final RabbitTemplate rabbitTemplate;
+    private final AddressMapper addressMapper;
 
     public OrderService(OrderMapper orderMapper,OrderItemMapper orderItemMapper
             ,SkuMapper skuMapper,SpuMapper spuMapper,CartMapper cartMapper
-            ,StockService stockService,RabbitTemplate rabbitTemplate){
+            ,StockService stockService,RabbitTemplate rabbitTemplate
+            ,AddressMapper addressMapper){
         this.orderMapper = orderMapper;
         this.orderItemMapper = orderItemMapper;
         this.skuMapper = skuMapper;
@@ -46,10 +48,46 @@ public class OrderService {
         this.cartMapper = cartMapper;
         this.stockService = stockService;
         this.rabbitTemplate = rabbitTemplate;
+        this.addressMapper = addressMapper;
+    }
+
+    /**
+     * 查地址并校验归属（防越权：不能用别人的 addressId 下单）
+     */
+    private Address loadOwnAddress(Long addressId) {
+        Address addr = addressMapper.selectOne(new LambdaQueryWrapper<Address>()
+                .eq(Address::getId, addressId)
+                .eq(Address::getUserId, UserContext.get()));
+        if (addr == null) {
+            throw new BizException(ErrorCode.NOT_FOUND, "收货地址不存在");
+        }
+        return addr;
+    }
+
+    /**
+     * 由 addressId 回填收货信息。订单里存快照，地址簿后续修改/删除不影响历史订单。
+     */
+    private void fillReceiver(OrderSubmitDTO dto) {
+        if (dto.getAddressId() == null) return;
+        Address addr = loadOwnAddress(dto.getAddressId());
+        dto.setReceiverName(addr.getReceiverName());
+        dto.setReceiverPhone(addr.getReceiverPhone());
+        dto.setReceiverAddress(
+                addr.getProvince() + addr.getCity() + addr.getDistrict() + addr.getDetail());
+    }
+
+    private void fillReceiver(OrderFromCartDTO dto) {
+        if (dto.getAddressId() == null) return;
+        Address addr = loadOwnAddress(dto.getAddressId());
+        dto.setReceiverName(addr.getReceiverName());
+        dto.setReceiverPhone(addr.getReceiverPhone());
+        dto.setReceiverAddress(
+                addr.getProvince() + addr.getCity() + addr.getDistrict() + addr.getDetail());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public OrderSubmitVO submit(OrderSubmitDTO dto){
+        fillReceiver(dto);
         Long userId = UserContext.get();
         // 1. 查 SKU → 不存在 404，已下架 20001
         Sku sku = skuMapper.selectById(dto.getSkuId());
@@ -122,6 +160,7 @@ public class OrderService {
 
     @Transactional(rollbackFor = Exception.class)
     public OrderSubmitVO submitFromCart(OrderFromCartDTO orderFromCartDTO){
+        fillReceiver(orderFromCartDTO);
 
         Long userId = UserContext.get();
 

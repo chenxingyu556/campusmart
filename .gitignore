@@ -5,7 +5,7 @@ CampusMart/.mvn/wrapper/maven-wrapper.jar
 
 # ---------- Maven 仓库缓存（绝不能进版本控制）----------
 maven-repo/
-CampusMart/D:/
+CampusMart/D*/
 CampusMart/.mvn/
 
 # ---------- 前端 ----------

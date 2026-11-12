@@ -24,6 +24,13 @@ spring:
     username: ${RABBITMQ_USER:campusmart}
     password: ${RABBITMQ_PASSWORD:123456}
 
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          max-retries: 2          # 改掉 max-attempts
+          initial-interval: 1000
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

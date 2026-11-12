@@ -14,15 +14,16 @@ public class OrderSubmitDTO {
     @Max(value = 99, message = "最多购买 99 件")
     private Integer quantity;
 
-    @NotBlank(message = "收货人不能为空")
+    @NotNull(message = "请选择收货地址")
+    private Long addressId;
+
+    // 以下三项由后端根据 addressId 回填，前端无需传（保留字段兼容旧调用）
     @Size(max = 50, message = "收货人最长 50 字")
     private String receiverName;
 
-    @NotBlank(message = "联系电话不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String receiverPhone;
 
-    @NotBlank(message = "收货地址不能为空")
     @Size(max = 255, message = "地址最长 255 字")
     private String receiverAddress;
 }
